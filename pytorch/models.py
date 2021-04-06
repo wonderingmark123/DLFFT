@@ -14,7 +14,7 @@ from torch import Tensor
 import torch.nn as nn
 import numpy as np
 
-from layers import CoarseFR, ConvBlock, CoarseBlock, ConvUnit
+# from layers import CoarseFR, ConvBlock, CoarseBlock, ConvUnit
 from e2cnn import gspaces
 from e2cnn import nn as e2nn
 
@@ -62,7 +62,26 @@ class BCNN(nn.Module):
         f1, f1_pred = self.coarse3(l3)
 
         return c1, c2, f1
+class NNLiner(nn.Module):
+    def __init__(self, LinerPara = [200,100]):
+        super(NNLiner, self).__init__()
+        if(len(LinerPara)<3):
+            raise ValueError
+        layers = []
+        NumberNow = LinerPara[1]
+        layers.append(nn.Linear(LinerPara[0],LinerPara[1]))
+        # layers.append(nn.BatchNorm1d(NumberNow))
+        # layers.append(nn.ReLU(inplace=True))
+        for i in LinerPara[2:]:
+            layers.append(nn.Linear(NumberNow,i))
+            # layers.append(nn.BatchNorm1d(i))
+            layers.append(nn.ReLU(inplace=True))
+            NumberNow = i
+        self.layer = nn.Sequential(*layers)
+    def forward(self, x):
+        x = x.view(x.size()[0], -1)
 
+        return self.layer(x)
 # --------------------------------------------------------------------------
 class BaseCNN(nn.Module):
     def __init__(self, in_chan, params, kernel_size=3):
